@@ -33,6 +33,11 @@ struct ContentView: View {
     @State private var currentQuestion = 1
     @State private var showEndGameAlert = false
     
+    @State private var flagSelected = -1
+    @State private var spinAnimationCapacity = 0.0
+    @State private var inactiveFlagsOpacity = 1.0
+    @State private var inactiveFlagsScale = 1.0
+    
     var body: some View {
         ZStack {
             RadialGradient(stops: [
@@ -63,6 +68,10 @@ struct ContentView: View {
                         } label: {
                             FlagImage(countries[number])
                         }
+                        .rotation3DEffect(.degrees(number == flagSelected ? spinAnimationCapacity : 0), axis: (x: 0, y: 1, z: 0))
+                        .opacity(number == flagSelected || flagSelected == -1 ? 1 : inactiveFlagsOpacity)
+                        .animation(.default, value: inactiveFlagsOpacity)
+                        .scaleEffect(number == flagSelected || flagSelected == -1 ? 1.0 : inactiveFlagsScale)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -94,6 +103,14 @@ struct ContentView: View {
     }
     
     func flagTapped(_ number: Int) {
+        flagSelected = number
+        withAnimation {
+            spinAnimationCapacity = 360
+        }
+        inactiveFlagsOpacity = 0.25
+        withAnimation(.easeInOut(duration: 2)) {
+            inactiveFlagsScale = 0.25
+        }
         scoreAlertMessage = ""
         if number == correctAnswer {
             scoreTitle = "Correct"
@@ -117,6 +134,9 @@ struct ContentView: View {
         currentQuestion += 1
         countries = countries.shuffled()
         correctAnswer = Int.random(in: 0...2)
+        spinAnimationCapacity = 0
+        inactiveFlagsScale = 1
+        flagSelected = -1
     }
     
     func resetGame() {
